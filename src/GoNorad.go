@@ -52,7 +52,7 @@ func main() {
         os.Exit(1)
     }
 
-    json.Unmarshal(file, &config)
+    json.Unmarshal(file, config)
 
     neptune.Login(config["username"], config["password"])
     var data = neptune.GetData()

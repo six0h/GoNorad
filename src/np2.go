@@ -50,7 +50,7 @@ func GetData() string {
     orderType := "full_universe_report"
     requestType := "order"
     version := "7"
-    gameNumber := "5664221551394816"
+    gameNumber := "5221029884461056"
 
     data := url.Values{}
     data.Set("order", orderType)
