@@ -1,61 +1,43 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "io/ioutil"
-    "encoding/json"
-    "github.com/six0h/neptune"
+	"fmt"
+	"github.com/six0h/neptune"
+	"io/ioutil"
+	"net/http/cookiejar"
+	"net/url"
 )
 
-type Error struct {
-    code    int
-    message string
-}
-
-type Config struct {
-    username        string
-    password        string
-}
-
-type FleetType struct {
-    ships           int
-    owner_id        int
-    destination_id  int
-    name            string
-}
-
-type PlayerType struct {
-    id              int
-    name            string
-    economy         int
-    industry        int
-    science         int
-    stars           int
-}
-
-type StarType struct {
-    id              int
-    name            string
-    economy         int
-    industry        int
-    science         int
-}
-
-var config = make(map[string]string)
-
 func main() {
+	config := GetConfig()
+	cookieJar, _ := cookiejar.New(nil)
 
-    file, e := ioutil.ReadFile("app.config")
-    if e != nil {
-        fmt.Printf("File Error: %v\n", e)
-        os.Exit(1)
-    }
+	fmt.Println("Config:")
+	fmt.Println(config)
+	fmt.Println(config["username"])
+	fmt.Println(config["password"])
+	fmt.Println(config["gameNumber"])
 
-    json.Unmarshal(file, config)
+	r, e := neptune.Login(config["username"], config["password"], &cookieJar)
+	if e != nil {
+		fmt.Println("Error:")
+		fmt.Println(e)
+	}
 
-    neptune.Login(config["username"], config["password"])
-    var data = neptune.GetData()
-    fmt.Println(data)
+	loginResponse, _ := ioutil.ReadAll(r.Body)
+	fmt.Println(string(loginResponse))
 
+	address, _ := url.Parse(neptune.BASE_URL)
+	for cookie := range cookieJar.Cookies(address) {
+		fmt.Println("Cookie")
+		fmt.Println(cookie)
+	}
+
+	data, err := neptune.GetData(config["gameNumber"], &cookieJar)
+	if err != nil {
+		fmt.Println("Error Getting Data:")
+		fmt.Println(err)
+	}
+
+	fmt.Println(data)
 }
