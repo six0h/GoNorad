@@ -15,11 +15,15 @@ func main() {
 
 	cookieJar, _ := cookiejar.New(nil)
 
-	_, e := Login(config["username"], config["password"], &cookieJar)
+	var np2 Neptune
+
+	_, e := np2.Login(config["username"], config["password"], &cookieJar)
 	if e != nil {
 		fmt.Println("Error:")
 		fmt.Println(e)
 	}
+
+	fmt.Println(cookieJar)
 
 	address, _ := url.Parse(BASE_URL)
 	for cookie := range cookieJar.Cookies(address) {
@@ -27,7 +31,7 @@ func main() {
 		fmt.Println(cookie)
 	}
 
-	data, err := GetData(config["gameNumber"], &cookieJar)
+	data, err := np2.GetData(config["gameNumber"], &cookieJar)
 	if err != nil {
 		fmt.Println("Error Getting Data:")
 		fmt.Println(err)
