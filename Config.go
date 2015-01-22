@@ -11,7 +11,7 @@ func GetConfig() map[string]string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	config := map[string]string{}
+	var config = make(map[string]string)
 	json.Unmarshal(data, &config)
 	return config
 }
