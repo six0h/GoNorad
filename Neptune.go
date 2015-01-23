@@ -17,13 +17,13 @@ const ORDER_RESOURCE string = "/grequest/order"
 type Neptune struct {
 }
 
-func (Neptune) Login(username string, password string, cookieJar **cookiejar.Jar) (res []byte, e error) {
+func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (res []byte, e error) {
 	u, _ := url.ParseRequestURI(BASE_URL)
 	u.Path = LOGIN_RESOURCE
 	urlStr := fmt.Sprintf("%v", u)
 
 	client := &http.Client{
-	//		Jar: *cookieJar,
+			Jar: cookieJar,
 	}
 
 	data := url.Values{
