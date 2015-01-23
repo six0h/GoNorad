@@ -17,7 +17,7 @@ func main() {
 
 	var np2 Neptune
 
-	_, e := np2.Login(config["username"], config["password"], &cookieJar)
+	_, e := np2.Login(config["username"], config["password"], cookieJar)
 	if e != nil {
 		fmt.Println("Error:")
 		fmt.Println(e)
