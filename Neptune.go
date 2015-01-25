@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"strings"
 )
 
 const DOMAIN string = "triton.ironhelmet.com"
@@ -17,56 +16,46 @@ const ORDER_RESOURCE string = "/grequest/order"
 type Neptune struct {
 }
 
-func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (res []byte, e error) {
-	u, _ := url.ParseRequestURI(BASE_URL)
-	u.Path = LOGIN_RESOURCE
-	urlStr := fmt.Sprintf("%v", u)
-
-	client := &http.Client{
-			Jar: cookieJar,
-	}
-
+func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (body string, err error) {
 	data := url.Values{
 		"alias":    {username},
 		"password": {password},
 		"type":     {"login"},
 	}
 
-	req, _ := http.NewRequest("POST", urlStr, strings.NewReader(data.Encode()))
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.85 Safari/537.36")
-	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
-
-	r, e := client.Do(req)
-	defer r.Body.Close()
-
-	res, _ = ioutil.ReadAll(r.Body)
-
-	fmt.Println(string(res))
+	body, err = doRequest(LOGIN_RESOURCE, data, cookieJar)
 
 	return
 }
 
-func (Neptune) GetData(gameNumber string, cookieJar **cookiejar.Jar) (body string, err error) {
-	orderType := "full_universe_report"
-	requestType := "order"
-	version := "7"
+func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (body string, err error) {
+	data := url.Values{
+		"order":       {"full_universe_report"},
+		"type":        {"order"},
+		"version":     {"7"},
+		"game_number": {gameNumber},
+	}
 
-	data := url.Values{}
-	data.Set("order", orderType)
-	data.Add("type", requestType)
-	data.Add("version", version)
-	data.Add("game_number", gameNumber)
+	body, err = doRequest(ORDER_RESOURCE, data, cookieJar)
 
+	return
+}
+
+func doRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body string, e error) {
 	u, _ := url.ParseRequestURI(BASE_URL)
-	u.Path = ORDER_RESOURCE
+	u.Path = resource
 	urlStr := fmt.Sprintf("%v", u)
 
 	var client = &http.Client{
-		Jar: *cookieJar,
+		Jar: cookieJar,
 	}
 
 	r, _ := client.PostForm(urlStr, data)
-	response, err := ioutil.ReadAll(r.Body)
+	response, e := ioutil.ReadAll(r.Body)
+
+	for cookie := range cookieJar.Cookies(u) {
+		fmt.Println(cookie)
+	}
 
 	body = string(response)
 

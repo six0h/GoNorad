@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http/cookiejar"
-	"net/url"
+	"os"
 )
 
 type DataRequest struct {
@@ -11,31 +11,22 @@ type DataRequest struct {
 }
 
 func main() {
+	var np2 Neptune
 	config := GetConfig()
-
 	cookieJar, _ := cookiejar.New(nil)
 
-	var np2 Neptune
-
 	_, e := np2.Login(config["username"], config["password"], cookieJar)
-	if e != nil {
-		fmt.Println("Error:")
-		fmt.Println(e)
-	}
+	errorExit(e)
 
-	fmt.Println(cookieJar)
-
-	address, _ := url.Parse(BASE_URL)
-	for cookie := range cookieJar.Cookies(address) {
-		fmt.Println("Cookie")
-		fmt.Println(cookie)
-	}
-
-	data, err := np2.GetData(config["gameNumber"], &cookieJar)
-	if err != nil {
-		fmt.Println("Error Getting Data:")
-		fmt.Println(err)
-	}
+	data, err := np2.GetData(config["gameNumber"], cookieJar)
+	errorExit(err)
 
 	fmt.Println(data)
+}
+
+func errorExit(e error) {
+	if e != nil {
+		fmt.Println("Error:", e)
+		os.Exit(1)
+	}
 }
