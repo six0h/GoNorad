@@ -11,20 +11,28 @@ type DataRequest struct {
 }
 
 func main() {
+
+	var res string
+	var e error
 	var np2 Neptune
 	config := GetConfig()
-	cookieJar, _ := cookiejar.New(nil)
+	cookieJar, e := cookiejar.New(nil)
 
-	_, e := np2.Login(config["username"], config["password"], cookieJar)
-	errorExit(e)
+	res, e = np2.Login(config["username"], config["password"], cookieJar)
+	ErrorExit(e)
 
-	data, err := np2.GetData(config["gameNumber"], cookieJar)
-	errorExit(err)
+	fmt.Printf("%v - %v", cookieJar, res)
+	fmt.Println()
 
-	fmt.Println(data)
+	res, e = np2.GetData(config["gameNumber"], cookieJar)
+	ErrorExit(e)
+
+	fmt.Printf("%v - %v", cookieJar, res)
+	fmt.Println()
+
 }
 
-func errorExit(e error) {
+func ErrorExit(e error) {
 	if e != nil {
 		fmt.Println("Error:", e)
 		os.Exit(1)

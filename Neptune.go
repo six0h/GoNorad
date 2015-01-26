@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strings"
 )
 
 const DOMAIN string = "triton.ironhelmet.com"
@@ -13,22 +14,28 @@ const BASE_URL string = "http://triton.ironhelmet.com"
 const LOGIN_RESOURCE string = "/arequest/login"
 const ORDER_RESOURCE string = "/grequest/order"
 
-type Neptune struct {
+type NeptuneRequest interface {
+	DoRequest(string, url.Values, cookiejar.Jar) (string, error)
+	Login(string, string, cookiejar.Jar) (string, error)
+	GetData(string, cookiejar.Jar) (string, error)
 }
 
-func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (body string, err error) {
+type Neptune struct{}
+
+func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
 	data := url.Values{
 		"alias":    {username},
 		"password": {password},
 		"type":     {"login"},
 	}
 
-	body, err = doRequest(LOGIN_RESOURCE, data, cookieJar)
+	jsonBody, err = DoRequest(LOGIN_RESOURCE, data, cookieJar)
+	ErrorExit(err)
 
 	return
 }
 
-func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (body string, err error) {
+func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
 	data := url.Values{
 		"order":       {"full_universe_report"},
 		"type":        {"order"},
@@ -36,12 +43,12 @@ func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (body string
 		"game_number": {gameNumber},
 	}
 
-	body, err = doRequest(ORDER_RESOURCE, data, cookieJar)
+	jsonBody, err = DoRequest(ORDER_RESOURCE, data, cookieJar)
 
 	return
 }
 
-func doRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body string, e error) {
+func DoRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body string, e error) {
 	u, _ := url.ParseRequestURI(BASE_URL)
 	u.Path = resource
 	urlStr := fmt.Sprintf("%v", u)
@@ -50,12 +57,11 @@ func doRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body
 		Jar: cookieJar,
 	}
 
-	r, _ := client.PostForm(urlStr, data)
-	response, e := ioutil.ReadAll(r.Body)
+	req, err := http.NewRequest("POST", urlStr, strings.NewReader(data.Encode()))
+	ErrorExit(err)
 
-	for cookie := range cookieJar.Cookies(u) {
-		fmt.Println(cookie)
-	}
+	r, e := client.Do(req)
+	response, e := ioutil.ReadAll(r.Body)
 
 	body = string(response)
 

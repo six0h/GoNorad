@@ -2,16 +2,29 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 func GetConfig() map[string]string {
-	data, err := ioutil.ReadFile("./config.json")
-	if err != nil {
-		fmt.Println(err)
-	}
+
+	binPath, err := GetCurrentPath()
+	ErrorExit(err)
+
+	data, err := ioutil.ReadFile(binPath + "/config.json")
+	ErrorExit(err)
+
 	var config = make(map[string]string)
 	json.Unmarshal(data, &config)
 	return config
+}
+
+func GetCurrentPath() (dir string, err error) {
+	dir, err = filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		ErrorExit(err)
+	}
+
+	return
 }
