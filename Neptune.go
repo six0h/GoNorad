@@ -22,20 +22,20 @@ type NeptuneRequest interface {
 
 type Neptune struct{}
 
-func (Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
+func (np2 *Neptune) Login(username string, password string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
 	data := url.Values{
 		"alias":    {username},
 		"password": {password},
 		"type":     {"login"},
 	}
 
-	jsonBody, err = DoRequest(LOGIN_RESOURCE, data, cookieJar)
+	jsonBody, err = np2.DoRequest(LOGIN_RESOURCE, data, cookieJar)
 	ErrorExit(err)
 
 	return
 }
 
-func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
+func (np2 *Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (jsonBody string, err error) {
 	data := url.Values{
 		"order":       {"full_universe_report"},
 		"type":        {"order"},
@@ -43,17 +43,17 @@ func (Neptune) GetData(gameNumber string, cookieJar *cookiejar.Jar) (jsonBody st
 		"game_number": {gameNumber},
 	}
 
-	jsonBody, err = DoRequest(ORDER_RESOURCE, data, cookieJar)
+	jsonBody, err = np2.DoRequest(ORDER_RESOURCE, data, cookieJar)
 
 	return
 }
 
-func DoRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body string, e error) {
+func (np2 *Neptune) DoRequest(resource string, data url.Values, cookieJar *cookiejar.Jar) (body string, e error) {
 	u, _ := url.ParseRequestURI(BASE_URL)
 	u.Path = resource
 	urlStr := fmt.Sprintf("%v", u)
 
-	var client = &http.Client{
+	var client = http.Client{
 		Jar: cookieJar,
 	}
 
